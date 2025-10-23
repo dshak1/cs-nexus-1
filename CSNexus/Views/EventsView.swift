@@ -433,8 +433,24 @@ struct EventDetailView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             LazyHStack(spacing: 16) {
                                 ForEach(event.mockAttendees.prefix(12)) { attendee in
-                                    AttendeePreviewCard(attendee: attendee)
-                                        .environmentObject(eventManager)
+                                    Button(action: {
+                                        // TODO: Show attendee profile
+                                    }) {
+                                        VStack(spacing: 4) {
+                                            Text(attendee.avatarEmoji)
+                                                .font(.system(size: 30))
+                                                .frame(width: 50, height: 50)
+                                                .background(Color.blue.opacity(0.1))
+                                                .clipShape(Circle())
+                                            
+                                            Text(attendee.name.components(separatedBy: " ").first ?? attendee.name)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .lineLimit(1)
+                                        }
+                                        .frame(width: 60)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                             .padding(.horizontal, 2)
@@ -672,435 +688,30 @@ struct AttendeeCard: View {
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showingProfile) {
-            AttendeeProfileView(attendee: attendee)
+            AttendeeProfileView(attendee: convertToClubEventAttendee(attendee))
                 .environmentObject(eventManager)
         }
     }
 }
 
-// MARK: - Attendee Profile View
-struct AttendeeProfileView: View {
-    let attendee: Attendee
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var eventManager: EventManager
-    
-    // Generate synthetic profile data
-    private var syntheticData: (linkedIn: String, github: String, skills: [String], interests: [String], commonEvents: [Event]) {
-        let skills = [
-            ["Python", "Django", "PostgreSQL"],
-            ["React", "TypeScript", "Node.js"],
-            ["Swift", "SwiftUI", "iOS"],
-            ["Java", "Spring Boot", "AWS"],
-            ["Go", "Docker", "Kubernetes"],
-            ["C++", "Systems Programming", "Linux"]
-        ].randomElement()!
-        
-        let interests = [
-            ["Hackathons", "Open Source", "AI/ML"],
-            ["Web Development", "UI/UX", "Design"],
-            ["Mobile Apps", "Startups", "Entrepreneurship"],
-            ["Backend Systems", "DevOps", "Cloud"],
-            ["Competitive Programming", "Algorithms", "Math"],
-            ["Cybersecurity", "CTF", "Cryptography"]
-        ].randomElement()!
-        
-        // Get common events from past events
-        let allEvents = eventManager.pastEvents + eventManager.upcomingEvents
-        let commonEvents = allEvents.shuffled().prefix(attendee.commonEventsCount)
-        
-        return (
-            linkedIn: "linkedin.com/in/\(attendee.name.lowercased().replacingOccurrences(of: " ", with: "-"))",
-            github: "github.com/\(attendee.name.components(separatedBy: " ").first!.lowercased())\(Int.random(in: 100...999))",
-            skills: skills,
-            interests: interests,
-            commonEvents: Array(commonEvents)
-        )
-    }
-    
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header with avatar and name
-                    VStack(spacing: 12) {
-                        Text(attendee.avatarEmoji)
-                            .font(.system(size: 80))
-                            .frame(width: 120, height: 120)
-                            .background(Color.blue.opacity(0.1))
-                            .clipShape(Circle())
-                        
-                        Text(attendee.name)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Text("\(attendee.major)")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(attendee.year)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top)
-                    
-                    // Common Events Section (if any)
-                    if attendee.commonEventsCount > 0 {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text("Events in Common")
-                                    .font(.headline)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(syntheticData.commonEvents.prefix(3), id: \.id) { event in
-                                    HStack {
-                                        Image(systemName: event.type.icon)
-                                            .foregroundColor(.blue)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(event.name)
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                            Text(event.date, style: .date)
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(12)
-                    }
-                    
-                    // Bio Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "text.quote")
-                                .foregroundColor(.blue)
-                            Text("About")
-                                .font(.headline)
-                        }
-                        
-                        Text(attendee.bio)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
-                    // Skills Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "star.circle.fill")
-                                .foregroundColor(.orange)
-                            Text("Skills")
-                                .font(.headline)
-                        }
-                        
-                        FlowLayout(spacing: 8) {
-                            ForEach(syntheticData.skills, id: \.self) { skill in
-                                Text(skill)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.blue.opacity(0.1))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(16)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
-                    // Interests Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "heart.circle.fill")
-                                .foregroundColor(.pink)
-                            Text("Interests")
-                                .font(.headline)
-                        }
-                        
-                        FlowLayout(spacing: 8) {
-                            ForEach(syntheticData.interests, id: \.self) { interest in
-                                Text(interest)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color.pink.opacity(0.1))
-                                    .foregroundColor(.pink)
-                                    .cornerRadius(16)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
-                    // Social Links Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "link.circle.fill")
-                                .foregroundColor(.purple)
-                            Text("Connect")
-                                .font(.headline)
-                        }
-                        
-                        VStack(spacing: 8) {
-                            SocialLinkButton(
-                                icon: "person.crop.circle.fill",
-                                title: "LinkedIn",
-                                subtitle: syntheticData.linkedIn,
-                                color: .blue,
-                                url: "https://\(syntheticData.linkedIn)"
-                            )
-                            
-                            SocialLinkButton(
-                                icon: "chevron.left.forwardslash.chevron.right",
-                                title: "GitHub",
-                                subtitle: syntheticData.github,
-                                color: .purple,
-                                url: "https://\(syntheticData.github)"
-                            )
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    
-                    // Action Buttons
-                    VStack(spacing: 12) {
-                        Button(action: {
-                            // TODO: Send connection request
-                            print("🤝 Connection request sent to \(attendee.name)")
-                        }) {
-                            HStack {
-                                Image(systemName: "person.badge.plus")
-                                Text("Send Connection Request")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                        }
-                        
-                        Button(action: {
-                            // TODO: Send message
-                            print("💬 Message sent to \(attendee.name)")
-                        }) {
-                            HStack {
-                                Image(systemName: "message")
-                                Text("Send Message")
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(12)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding()
-            }
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
+// MARK: - Helper Functions
+private func convertToClubEventAttendee(_ attendee: Attendee) -> ClubEvent.Attendee {
+    return ClubEvent.Attendee(
+        id: attendee.id,
+        name: attendee.name,
+        avatarEmoji: attendee.avatarEmoji,
+        rsvpStatus: attendee.rsvpStatus == .going ? .going : (attendee.rsvpStatus == .interested ? .interested : .notGoing),
+        major: attendee.major,
+        year: attendee.year,
+        bio: attendee.bio,
+        leetcodeUsername: attendee.leetcodeUsername,
+        githubUsername: attendee.githubUsername,
+        linkedinUsername: attendee.linkedinUsername,
+        commonEventCount: attendee.commonEventsCount
+    )
 }
 
-// MARK: - Supporting Views
-
-struct SocialLinkButton: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-    let color: Color
-    let url: String
-    
-    var body: some View {
-        Button(action: {
-            if let url = URL(string: url) {
-                UIApplication.shared.open(url)
-            }
-        }) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .frame(width: 20)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "arrow.up.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct FlowLayout: Layout {
-    let spacing: CGFloat
-    
-    init(spacing: CGFloat = 8) {
-        self.spacing = spacing
-    }
-    
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(
-            in: proposal.replacingUnspecifiedDimensions().width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        return result.size
-    }
-    
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(
-            in: bounds.width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        for (index, subview) in subviews.enumerated() {
-            subview.place(at: result.positions[index], proposal: ProposedViewSize(result.sizes[index]))
-        }
-    }
-    
-    struct FlowResult {
-        let size: CGSize
-        let positions: [CGPoint]
-        let sizes: [CGSize]
-        
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var sizes: [CGSize] = []
-            var positions: [CGPoint] = []
-            
-            var currentX: CGFloat = 0
-            var currentY: CGFloat = 0
-            var lineHeight: CGFloat = 0
-            
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                
-                if currentX + size.width > maxWidth && currentX > 0 {
-                    // Move to next line
-                    currentX = 0
-                    currentY += lineHeight + spacing
-                    lineHeight = 0
-                }
-                
-                positions.append(CGPoint(x: currentX, y: currentY))
-                sizes.append(size)
-                
-                currentX += size.width + spacing
-                lineHeight = max(lineHeight, size.height)
-            }
-            
-            self.size = CGSize(width: maxWidth, height: currentY + lineHeight)
-            self.positions = positions
-            self.sizes = sizes
-        }
-    }
-}
-
-// MARK: - Attendee Preview Card (for horizontal scroll)
-struct AttendeePreviewCard: View {
-    let attendee: Attendee
-    @State private var showingProfile = false
-    @EnvironmentObject var eventManager: EventManager
-    
-    var body: some View {
-        Button(action: {
-            showingProfile = true
-        }) {
-            VStack(spacing: 8) {
-                // Avatar with green border if common events
-                ZStack(alignment: .topTrailing) {
-                    Text(attendee.avatarEmoji)
-                        .font(.system(size: 40))
-                        .frame(width: 70, height: 70)
-                        .background(Color.blue.opacity(0.1))
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(attendee.commonEventsCount > 0 ? Color.green : Color.clear, lineWidth: 3)
-                        )
-                    
-                    // Badge for common events
-                    if attendee.commonEventsCount > 0 {
-                        ZStack {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 24, height: 24)
-                            
-                            Text("\(attendee.commonEventsCount)")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        }
-                        .offset(x: 5, y: -5)
-                    }
-                }
-                
-                // Name
-                Text(attendee.name.components(separatedBy: " ").first ?? attendee.name)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-                
-                // Major
-                Text(attendee.major)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            .frame(width: 80)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $showingProfile) {
-            AttendeeProfileView(attendee: attendee)
-                .environmentObject(eventManager)
-        }
-    }
-}
+// MARK: - Attendee Profile View (moved to separate file)
 
 #Preview {
     EventsView()

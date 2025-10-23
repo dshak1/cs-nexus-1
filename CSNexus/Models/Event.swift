@@ -7,6 +7,34 @@
 
 import Foundation
 
+// MARK: - RSVP Status
+enum RSVPStatus: String, Codable, CaseIterable {
+    case none = "none"
+    case going = "going"
+    case interested = "interested"
+    case notGoing = "notGoing"
+}
+
+// MARK: - Attendee
+struct Attendee: Identifiable, Codable, Hashable {
+    let id: UUID
+    let name: String
+    let avatarEmoji: String
+    var rsvpStatus: RSVPStatus
+    let major: String
+    let year: String
+    let bio: String
+    let leetcodeUsername: String?
+    let githubUsername: String?
+    let linkedinUsername: String?
+    var commonEventsCount: Int = 0 // Number of shared events with current user
+    
+    // Computed property for sorting
+    var hasMetBefore: Bool {
+        commonEventsCount > 0
+    }
+}
+
 struct Event: Identifiable, Codable, Hashable {
     let id: UUID
     let name: String

@@ -287,11 +287,16 @@ class EventManager: ObservableObject {
             }
             
             let attendee = Attendee(
+                id: UUID(),
                 name: "\(firstNames.randomElement()!) \(lastNames.randomElement()!)",
+                avatarEmoji: emojis.randomElement()!,
+                rsvpStatus: .going,
                 major: majors.randomElement()!,
                 year: years.randomElement()!,
-                avatarEmoji: emojis.randomElement()!,
                 bio: bios.randomElement()!,
+                leetcodeUsername: nil,
+                githubUsername: nil,
+                linkedinUsername: nil,
                 commonEventsCount: commonEvents
             )
             
