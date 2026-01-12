@@ -119,3 +119,7 @@ Campus Integration
 - Department collaboration tools
 - Academic calendar sync
 
+
+
+NEXT FEATURE:
+LET PEOPLE ON THE APP BE ABLE TO SCAN A QR CODE OR MANUALLY ADD EVENTS, which can maybe go through verification pipeline cuz we cant just let ppl spam it right or put bad events
