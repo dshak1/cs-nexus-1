@@ -123,3 +123,7 @@ Campus Integration
 
 NEXT FEATURE:
 LET PEOPLE ON THE APP BE ABLE TO SCAN A QR CODE OR MANUALLY ADD EVENTS, which can maybe go through verification pipeline cuz we cant just let ppl spam it right or put bad events
+ways to add an event:
+- manually fill out name date, description and then it gets put into authentication pipeline
+- or maybe if you're authorized user it can be instant add through link and then get a script to fill it out and add to events with scraping
+- for the initial launch i might send out a ton of emails to ppl ie authoritative ppl i think can benefit from this ie surge, gdsc, competitive programming club, game dev club, blockchain, wics, csss, ssss, dsss, etc.
